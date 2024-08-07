@@ -22,6 +22,7 @@ import {
 } from "firebase/firestore";
 import SignOutButton from "./SignOutButton";
 import { useAuth } from "@/app/context/AuthContext";
+import { useCallback } from 'react';
 import NextLink from "next/link";
 
 const Home = () => {
@@ -35,7 +36,7 @@ const Home = () => {
     if (user) {
       updateInventory();
     }
-  }, [user]);
+  }, [user, updateInventory]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -85,7 +86,7 @@ const Home = () => {
     await updateInventory();
   };
 
-  const updateInventory = async () => {
+  const updateInventory = useCallback(async () => {
     if (!user) return; 
     const userRef = collection(firestore, "users", user.uid, "inventory");
     const snapshot = query(userRef);
@@ -98,7 +99,7 @@ const Home = () => {
       });
     });
     setInventory(inventoryList);
-  };
+  }, [user]);
 
   return (
     <Box

@@ -44,7 +44,7 @@ const SignIn = () => {
         Sign In
       </Button>
       <NextLink href="/signup" passHref>
-        <Link>Don't have an account? Sign Up</Link>
+        <Link>Don&apos;t have an account? Sign Up</Link>
       </NextLink>
     </Box>
   );
