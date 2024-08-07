@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -9,7 +10,6 @@ import {
   TextField,
   Link,
 } from "@mui/material";
-import { useState, useEffect } from "react";
 import { firestore } from "@/firebase";
 import {
   collection,
@@ -22,7 +22,6 @@ import {
 } from "firebase/firestore";
 import SignOutButton from "./SignOutButton";
 import { useAuth } from "@/app/context/AuthContext";
-import { useCallback } from 'react';
 import NextLink from "next/link";
 
 const Home = () => {
@@ -31,6 +30,21 @@ const Home = () => {
   const [itemName, setItemName] = useState("");
   const [quantity, setQuantity] = useState("");
   const { user } = useAuth();
+
+  const updateInventory = useCallback(async () => {
+    if (!user) return;
+    const userRef = collection(firestore, "users", user.uid, "inventory");
+    const snapshot = query(userRef);
+    const docs = await getDocs(snapshot);
+    const inventoryList = [];
+    docs.forEach((doc) => {
+      inventoryList.push({
+        name: doc.id,
+        ...doc.data(),
+      });
+    });
+    setInventory(inventoryList);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -42,7 +56,7 @@ const Home = () => {
   const handleClose = () => setOpen(false);
 
   const addItem = async (item, quantity) => {
-    if (!user) return; 
+    if (!user) return;
     const userRef = doc(firestore, "users", user.uid, "inventory", item);
     const docSnap = await getDoc(userRef);
 
@@ -60,7 +74,7 @@ const Home = () => {
   };
 
   const removeItem = async (item) => {
-    if (!user) return; 
+    if (!user) return;
     const userRef = doc(firestore, "users", user.uid, "inventory", item);
     const docSnap = await getDoc(userRef);
 
@@ -80,26 +94,11 @@ const Home = () => {
   };
 
   const deleteItem = async (item) => {
-    if (!user) return; 
+    if (!user) return;
     const userRef = doc(firestore, "users", user.uid, "inventory", item);
     await deleteDoc(userRef);
     await updateInventory();
   };
-
-  const updateInventory = useCallback(async () => {
-    if (!user) return; 
-    const userRef = collection(firestore, "users", user.uid, "inventory");
-    const snapshot = query(userRef);
-    const docs = await getDocs(snapshot);
-    const inventoryList = [];
-    docs.forEach((doc) => {
-      inventoryList.push({
-        name: doc.id,
-        ...doc.data(),
-      });
-    });
-    setInventory(inventoryList);
-  }, [user]);
 
   return (
     <Box
