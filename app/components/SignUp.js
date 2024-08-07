@@ -17,7 +17,7 @@ const SignUp = () => {
     try {
       await signUp(email, password);
       console.log("Sign Up successful");
-      Router.push('/');
+      router.push('/');
     } catch (error) {
       console.error('Error signing up:', error);
     }
