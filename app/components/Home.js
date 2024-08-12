@@ -23,9 +23,11 @@ import {
 import SignOutButton from "./SignOutButton";
 import { useAuth } from "@/app/context/AuthContext";
 import NextLink from "next/link";
+import axios from "axios";
 
 const Home = () => {
   const [inventory, setInventory] = useState([]);
+  const [recipes, setRecipes] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -98,6 +100,20 @@ const Home = () => {
     const userRef = doc(firestore, "users", user.uid, "inventory", item);
     await deleteDoc(userRef);
     await updateInventory();
+  };
+
+  const fetchRecipes = async () => {
+    const apiKey = process.env.NEXT_PUBLIC_EDAMAM_API_KEY;
+    const appId = process.env.NEXT_PUBLIC_EDAMAM_APP_ID;
+    const ingredients = inventory.map((item) => item.name).join(",");
+    const url = `https://api.edamam.com/api/recipes/v2?type=public&q=${ingredients}&app_id=${appId}&app_key=${apiKey}`;
+
+    try {
+      const response = await axios.get(url);
+      setRecipes(response.data.hits);
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+    }
   };
 
   return (
@@ -178,6 +194,17 @@ const Home = () => {
           >
             Add New Item
           </Button>
+          <Button
+            variant="outlined"
+            onClick={(e) => {
+              e.preventDefault();
+              fetchRecipes();
+            }}
+            sx={{ mt: 2 }}
+          >
+            Find Recipes
+          </Button>
+
           <Box border="1px solid #333">
             <Box
               width="800px"
@@ -240,6 +267,32 @@ const Home = () => {
               ))}
             </Stack>
           </Box>
+
+          {recipes.length > 0 && (
+            <Box mt={4} width="800px" maxHeight="600px" overflow="auto">
+              <Typography variant="h4">
+                Recipes Based on Your Inventory
+              </Typography>
+              {recipes.map((recipe, index) => (
+                <Box
+                  key={index}
+                  mt={2}
+                  border="1px solid #ccc"
+                  padding={2}
+                  borderRadius="8px"
+                >
+                  <Typography variant="h5">{recipe.recipe.label}</Typography>
+                  <Typography>{recipe.recipe.source}</Typography>
+                  <img
+                    src={recipe.recipe.image}
+                    alt={recipe.recipe.label}
+                    width="100%"
+                    style={{ maxHeight: "200px", objectFit: "cover" }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
         </>
       ) : (
         <>
